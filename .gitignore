@@ -1,0 +1,15 @@
+target/
+.idea/
+.playwright-cli/
+.superpowers/
+
+*.class
+*.log
+*.tmp
+
+.env
+application-local.yml
+application-local.properties
+
+Thumbs.db
+.DS_Store

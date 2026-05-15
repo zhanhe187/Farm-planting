@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('FPMS 驾驶舱')}"></head>
+<body>
+<div class="shell">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments :: topbar('田间指挥台', '一张图掌握地块、批次、库存和合规风险')}"></div>
+        <section class="grid kpis">
+            <div class="card"><div class="kpi-label">地块数量</div><div class="kpi-value" th:text="${plotCount}"></div></div>
+            <div class="card"><div class="kpi-label">在种批次</div><div class="kpi-value" th:text="${activeBatchCount}"></div></div>
+            <div class="card"><div class="kpi-label">待采收</div><div class="kpi-value" th:text="${readyHarvestCount}"></div></div>
+            <div class="card"><div class="kpi-label">低库存预警</div><div class="kpi-value warn" th:text="${lowStockCount}"></div></div>
+            <div class="card"><div class="kpi-label">累计营收(元)</div><div class="kpi-value" th:text="${totalRevenue}"></div></div>
+            <div class="card"><div class="kpi-label">本月营收(元)</div><div class="kpi-value" th:text="${monthRevenue}"></div></div>
+        </section>
+        <section class="grid two" style="margin-top:14px">
+            <div class="card">
+                <h2>地块布局图</h2>
+                <canvas id="plotCanvas"></canvas>
+                <div th:each="p : ${plots}" class="plot-data"
+                     th:data-name="${p['NAME'] ?: p['name']}"
+                     th:data-status="${p['STATUS'] ?: p['status']}"
+                     th:data-x="${p['LAYOUT_X'] ?: p['layout_x']}"
+                     th:data-y="${p['LAYOUT_Y'] ?: p['layout_y']}"
+                     th:data-w="${p['WIDTH'] ?: p['width']}"
+                     th:data-h="${p['HEIGHT'] ?: p['height']}"
+                     th:data-batch="${p['BATCH_NO'] ?: p['batch_no']}"
+                     th:data-crop="${p['CROP_NAME'] ?: p['crop_name']}"
+                     th:data-sow="${p['SOW_DATE'] ?: p['sow_date']}"
+                     th:data-expect="${p['EXPECTED_HARVEST_DATE'] ?: p['expected_harvest_date']}"></div>
+            </div>
+            <div class="card">
+                <h2>批次状态分布</h2>
+                <div id="statusChart" class="chart"></div>
+                <div th:each="s : ${statusRows}" class="status-data"
+                     th:data-status="${s['STATUS'] ?: s['status']}"
+                     th:data-value="${s['STATUS_VALUE'] ?: s['status_value']}"></div>
+            </div>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>最新农事事件流</h2>
+            <table>
+                <tr><th>日期</th><th>批次</th><th>作物</th><th>类型</th><th>工人</th><th>说明</th></tr>
+                <tr th:each="o : ${recentOperations}">
+                    <td th:text="${o['OPERATION_DATE'] ?: o['operation_date']}"></td>
+                    <td th:text="${o['BATCH_NO'] ?: o['batch_no']}"></td>
+                    <td th:text="${o['CROP_NAME'] ?: o['crop_name']}"></td>
+                    <td><span class="status-pill" th:text="${label.operationType(o['TYPE'] ?: o['type'])}"></span></td>
+                    <td th:text="${o['WORKER_NAME'] ?: o['worker_name']}"></td>
+                    <td th:text="${o['NOTE'] ?: o['note']}"></td>
+                </tr>
+            </table>
+        </section>
+        <a class="ai-float" href="/ai/chat">AI 农事助手</a>
+    </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="/js/dashboard.js"></script>
+</body>
+</html>

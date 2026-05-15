@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title}">FPMS</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<aside class="sidebar" th:fragment="sidebar">
+    <div class="brand">智慧农场指挥中心</div>
+    <div class="muted" th:if="${currentUser}" th:text="${currentUser.displayName + ' · ' + (label != null ? label.role(currentUser.roleCode) : currentUser.roleCode)}"></div>
+    <nav class="nav">
+        <a href="/dashboard">驾驶舱</a>
+        <a href="/plots">地块布局</a>
+        <a href="/batches">种植批次</a>
+        <a href="/operations">农事作业</a>
+        <a href="/stock">农资库存</a>
+        <a href="/harvest">采收溯源</a>
+        <a href="/sales">销售记录</a>
+        <a href="/ai/chat">AI 助手</a>
+        <a th:if="${currentUser != null && currentUser.admin}" href="/providers">AI 端点管理</a>
+        <a href="/mobile">手机扫码</a>
+        <a href="/logout">退出</a>
+    </nav>
+</aside>
+<div class="topbar" th:fragment="topbar(title, subtitle)">
+    <div>
+        <div class="eyebrow">SQL Server · 智慧农场种植管理系统</div>
+        <h1 th:text="${title}">标题</h1>
+        <div class="muted" th:text="${subtitle}">说明</div>
+    </div>
+    <a class="button secondary" href="/mobile">手机端</a>
+</div>
+</body>
+</html>

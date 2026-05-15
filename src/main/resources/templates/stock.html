@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('农资库存')}"></head>
+<body>
+<div class="shell">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments :: topbar('农资库存', '作业消耗农资后自动生成出库流水')}"></div>
+        <section class="card">
+            <h2>库存台账</h2>
+            <table>
+                <tr><th>农资</th><th>类别</th><th>库存</th><th>安全库存</th><th>单位</th><th>间隔期</th><th>版本</th></tr>
+                <tr th:each="r : ${rows}">
+                    <td th:text="${r['NAME'] ?: r['name']}"></td>
+                    <td th:text="${r['CATEGORY'] ?: r['category']}"></td>
+                    <td th:classappend="${(r['QUANTITY'] ?: r['quantity']) <= (r['SAFETY_STOCK'] ?: r['safety_stock'])} ? 'warn'" th:text="${r['QUANTITY'] ?: r['quantity']}"></td>
+                    <td th:text="${r['SAFETY_STOCK'] ?: r['safety_stock']}"></td>
+                    <td th:text="${r['UNIT'] ?: r['unit']}"></td>
+                    <td th:text="${r['SAFE_INTERVAL_DAYS'] ?: r['safe_interval_days']} + ' 天'"></td>
+                    <td th:text="${r['VERSION'] ?: r['version']}"></td>
+                </tr>
+            </table>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>出库流水</h2>
+            <table>
+                <tr><th>时间</th><th>农资</th><th>数量</th><th>类型</th><th>作业ID</th></tr>
+                <tr th:each="o : ${outOrders}">
+                    <td th:text="${o['CREATED_AT'] ?: o['created_at']}"></td>
+                    <td th:text="${o['MATERIAL_NAME'] ?: o['material_name']}"></td>
+                    <td th:text="${o['QUANTITY'] ?: o['quantity']}"></td>
+                    <td th:text="${o['TYPE'] ?: o['type']}"></td>
+                    <td th:text="${o['OPERATION_ID'] ?: o['operation_id']}"></td>
+                </tr>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

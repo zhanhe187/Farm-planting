@@ -1,0 +1,56 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=daihaojie_xm;encrypt=true;trustServerCertificate=true
+    username: sa
+    password: 123456
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  sql:
+    init:
+      mode: never
+      encoding: UTF-8
+  thymeleaf:
+    cache: false
+    mode: HTML
+    encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 50MB
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+fpms:
+  upload:
+    path: ./static/upload/
+    url-prefix: /static/upload/
+    allow-ext: jpg,jpeg,png,webp,pdf
+    max-size-mb: 20
+  trace:
+    base-url: http://localhost:8080/trace/
+    rate-limit-per-min: 30
+  ai:
+    master-key: ${FPMS_AI_MASTER_KEY:}
+    chat:
+      rate-limit-per-min: 10
+      sse-timeout-ms: 120000
+      sensitive-mask:
+        - "1[3-9]\\d{9}"
+        - "[1-9]\\d{16}[0-9Xx]"
+    bind:
+      qr-base-url: http://localhost:8080/m/bind
+      token-ttl-seconds: 300
+
+logging:
+  level:
+    com.farm.fpms: info

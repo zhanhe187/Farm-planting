@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>手机端</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<main class="mobile-shell">
+    <div class="eyebrow">智慧农场 · 手机端</div>
+    <h1>田间手机端</h1>
+    <div class="notice" th:if="${bound}">已绑定 PC 会话</div>
+    <div class="notice" th:if="${cropAdded}" th:text="${'已成功添加作物：' + cropAdded}"></div>
+    <div class="error" th:if="${error}" th:text="${error}"></div>
+
+    <form action="/m/recognize" method="post" enctype="multipart/form-data" class="grid" th:if="${bound}">
+        <input name="image" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" required>
+        <button class="mobile-action" type="submit">拍照识别农作物</button>
+    </form>
+
+    <section class="card" th:if="${result}" style="margin-top:14px">
+        <h2 th:text="${result.name}"></h2>
+        <p class="muted" th:text="${result.latinName}"></p>
+        <table>
+            <tr><th>用途</th><td th:text="${result.usage}"></td></tr>
+            <tr><th>培育方法</th><td th:text="${result.cultivation}"></td></tr>
+            <tr><th>土壤偏好</th><td th:text="${result.soil}"></td></tr>
+            <tr><th>常见病虫害</th><td th:text="${result.commonPest}"></td></tr>
+            <tr><th>置信度</th><td th:text="${result.confidence}"></td></tr>
+        </table>
+        <form action="/m/add-crop" method="post" style="margin-top:12px">
+            <input type="hidden" name="name" th:value="${result.name}">
+            <input type="hidden" name="variety" th:value="${result.latinName}">
+            <input type="hidden" name="minGrowthDays" value="90">
+            <button class="mobile-action" type="submit">一键添加到作物库</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

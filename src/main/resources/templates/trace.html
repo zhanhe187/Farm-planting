@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>农产品溯源</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<main th:if="${trace}">
+    <section class="trace-hero" th:style="${'--trace-image:url(' + trace['IMAGE_URL'] + ')'}">
+        <div>
+            <div class="eyebrow">公开溯源码</div>
+            <h1 th:text="${trace['CROP_NAME'] + ' · ' + trace['VARIETY']}"></h1>
+            <p th:text="${'批次：' + trace['BATCH_NO'] + ' / 追溯码：' + code}"></p>
+        </div>
+        <img th:if="${qrDataUri}" th:src="${qrDataUri}" alt="溯源二维码"
+             style="width:160px;height:160px;border-radius:8px;border:2px solid rgba(255,255,255,0.3)">
+    </section>
+    <section class="main">
+        <div class="grid kpis">
+            <div class="card"><div class="kpi-label">产地地块</div><div class="kpi-value" style="font-size:24px" th:text="${trace['PLOT_NAME']}"></div></div>
+            <div class="card"><div class="kpi-label">土壤类型</div><div class="kpi-value" style="font-size:24px" th:text="${trace['SOIL_TYPE']}"></div></div>
+            <div class="card"><div class="kpi-label">采收日期</div><div class="kpi-value" style="font-size:24px" th:text="${trace['HARVEST_DATE']}"></div></div>
+            <div class="card"><div class="kpi-label">采收量</div><div class="kpi-value" style="font-size:24px" th:text="${trace['QUANTITY_KG'] + ' kg'}"></div></div>
+        </div>
+        <section class="card" style="margin-top:14px">
+            <h2>脱敏农事时间线</h2>
+            <table>
+                <tr><th>日期</th><th>类型</th><th>人员</th><th>说明</th></tr>
+                <tr th:each="o : ${trace['timeline']}">
+                    <td th:text="${o['OPERATION_DATE'] ?: o['operation_date']}"></td>
+                    <td><span class="status-pill" th:text="${label != null ? label.operationType(o['TYPE'] ?: o['type']) : (o['TYPE'] ?: o['type'])}"></span></td>
+                    <td th:text="${o['WORKER_NAME'] ?: o['worker_name']}"></td>
+                    <td th:text="${o['NOTE'] ?: o['note']}"></td>
+                </tr>
+            </table>
+        </section>
+    </section>
+</main>
+<main class="main" th:unless="${trace}">
+    <section class="card">
+        <h1>未找到溯源信息</h1>
+        <p class="muted" th:text="${'追溯码：' + code}"></p>
+    </section>
+</main>
+</body>
+</html>

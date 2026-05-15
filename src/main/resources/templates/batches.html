@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('种植批次')}"></head>
+<body>
+<div class="shell">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments :: topbar('种植批次', '状态机控制每个批次的生命周期推进')}"></div>
+        <div class="notice" th:if="${notice}" th:text="${notice}"></div>
+        <div class="error" th:if="${error}" th:text="${error}"></div>
+        <section class="card">
+            <table>
+                <tr><th>批次号</th><th>地块</th><th>作物</th><th>状态</th><th>播种日</th><th>预计采收</th><th>状态推进</th></tr>
+                <tr th:each="b : ${batches}">
+                    <td th:text="${b['BATCH_NO'] ?: b['batch_no']}"></td>
+                    <td th:text="${b['PLOT_NAME'] ?: b['plot_name']}"></td>
+                    <td th:text="${(b['CROP_NAME'] ?: b['crop_name']) + ' · ' + (b['CROP_VARIETY'] ?: b['crop_variety'])}"></td>
+                    <td><span class="status-pill" th:text="${label.batchStatus(b['STATUS'] ?: b['status'])}"></span></td>
+                    <td th:text="${b['SOW_DATE'] ?: b['sow_date']}"></td>
+                    <td th:text="${b['EXPECTED_HARVEST_DATE'] ?: b['expected_harvest_date']}"></td>
+                    <td>
+                        <form class="inline" th:action="@{'/batches/' + ${b['ID'] ?: b['id']} + '/advance'}" method="post">
+                            <select name="target">
+                                <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${label.batchStatus(s.name())}"></option>
+                            </select>
+                            <button type="submit">推进</button>
+                        </form>
+                    </td>
+                </tr>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>FPMS 登录</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="login-page">
+<section class="login-panel">
+    <div class="login-hero">
+        <div class="eyebrow">Farm Planting Management System</div>
+        <h1>智慧农场种植管理系统</h1>
+        <p>完整农事生命周期、库存联动、安全间隔期、溯源公开页与 AI 农事助手。</p>
+    </div>
+    <div class="login-form">
+        <h2>账户登录</h2>
+        <p class="muted">请使用已分配的系统账号登录。</p>
+        <div class="notice" th:if="${param.registered}">注册成功，请使用新账号登录。</div>
+        <div class="error" th:if="${error}" th:text="${error}"></div>
+        <form method="post" action="/login" class="grid">
+            <input name="username" placeholder="账号" autocomplete="username">
+            <input name="password" type="password" placeholder="密码" autocomplete="current-password">
+            <button type="submit">进入系统</button>
+        </form>
+        <p class="auth-switch">还没有账号？<a href="/register">创建农场主账号</a></p>
+    </div>
+</section>
+</body>
+</html>

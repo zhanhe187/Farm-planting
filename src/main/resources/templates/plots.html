@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('地块布局')}"></head>
+<body>
+<div class="shell">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments :: topbar('地块布局', '地块坐标用于 Canvas 布局图与产量热力扩展')}"></div>
+        <section class="card">
+            <table>
+                <tr><th>地块</th><th>面积(亩)</th><th>土壤</th><th>负责人</th><th>坐标</th><th>状态</th></tr>
+                <tr th:each="p : ${plots}">
+                    <td th:text="${p['NAME'] ?: p['name']}"></td>
+                    <td th:text="${p['AREA_MU'] ?: p['area_mu']}"></td>
+                    <td th:text="${p['SOIL_TYPE'] ?: p['soil_type']}"></td>
+                    <td th:text="${p['OWNER_NAME'] ?: p['owner_name']}"></td>
+                    <td th:text="${'x=' + (p['LAYOUT_X'] ?: p['layout_x']) + ', y=' + (p['LAYOUT_Y'] ?: p['layout_y'])}"></td>
+                    <td><span class="status-pill" th:text="${p['STATUS'] ?: p['status']}"></span></td>
+                </tr>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

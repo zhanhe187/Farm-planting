@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('农事作业')}"></head>
+<body>
+<div class="shell">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments :: topbar('农事作业事件流', '新增作业会同步扣减农资库存并生成出库流水')}"></div>
+        <div class="notice" th:if="${notice}" th:text="${notice}"></div>
+        <div class="error" th:if="${error}" th:text="${error}"></div>
+        <section class="card">
+            <h2>录入作业</h2>
+            <form method="post" action="/operations" class="toolbar">
+                <select name="batchId">
+                    <option th:each="b : ${batches}" th:value="${b['ID'] ?: b['id']}" th:text="${b['BATCH_NO'] ?: b['batch_no']}"></option>
+                </select>
+                <select name="type">
+                    <option value="SOWING">播种</option>
+                    <option value="FERTILIZE">施肥</option>
+                    <option value="PESTICIDE">施药</option>
+                    <option value="IRRIGATION">灌溉</option>
+                    <option value="PEST_CHECK">病虫害巡检</option>
+                </select>
+                <input type="date" name="operationDate" value="2026-05-14">
+                <input name="workerName" value="田间工人阿强">
+                <select name="materialId">
+                    <option value="">不消耗农资</option>
+                    <option th:each="m : ${materials}" th:value="${m['ID'] ?: m['id']}"
+                            th:text="${(m['NAME'] ?: m['name']) + ' / 库存 ' + (m['STOCK_QUANTITY'] ?: m['stock_quantity'])}"></option>
+                </select>
+                <input type="number" step="0.01" name="quantity" placeholder="消耗数量">
+                <input name="note" placeholder="作业说明">
+                <button type="submit">保存作业</button>
+            </form>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>不可篡改事件流</h2>
+            <table>
+                <tr><th>日期</th><th>批次</th><th>作物</th><th>类型</th><th>工人</th><th>说明</th></tr>
+                <tr th:each="o : ${operations}">
+                    <td th:text="${o['OPERATION_DATE'] ?: o['operation_date']}"></td>
+                    <td th:text="${o['BATCH_NO'] ?: o['batch_no']}"></td>
+                    <td th:text="${o['CROP_NAME'] ?: o['crop_name']}"></td>
+                    <td><span class="status-pill" th:text="${label.operationType(o['TYPE'] ?: o['type'])}"></span></td>
+                    <td th:text="${o['WORKER_NAME'] ?: o['worker_name']}"></td>
+                    <td th:text="${o['NOTE'] ?: o['note']}"></td>
+                </tr>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

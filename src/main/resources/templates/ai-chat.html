@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('AI 农事助手')}"></head>
+<body>
+<div class="shell">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments :: topbar('AI 农事助手', '调用管理员配置的 CHAT 端点，结合批次上下文输出农事建议')}"></div>
+        <section class="card ai-chat-panel">
+            <div class="grid">
+                <textarea id="questionInput" rows="4" placeholder="例如：这个批次未来一周应该做什么？"></textarea>
+                <div class="toolbar">
+                    <input id="batchIdInput" placeholder="可选批次 ID，例如 1">
+                    <button id="sendBtn" onclick="sendQuestion()">发送问题</button>
+                    <button id="stopBtn" onclick="stopStream()" style="display:none">停止</button>
+                </div>
+            </div>
+        </section>
+        <section class="card ai-answer" style="margin-top:14px">
+            <h2>助手回复 <span id="streamStatus" class="muted" style="font-size:12px"></span></h2>
+            <div id="answerBox" style="white-space:pre-wrap;min-height:60px;line-height:1.7"></div>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>快捷指令</h2>
+            <div class="toolbar">
+                <span class="status-pill" style="cursor:pointer" onclick="fillQuestion('分析当前在种批次的状态和建议')">批次分析</span>
+                <span class="status-pill" style="cursor:pointer" onclick="fillQuestion('给我一份本周农事建议')">本周建议</span>
+                <span class="status-pill" style="cursor:pointer" onclick="fillQuestion('当前库存情况如何，有哪些需要补充')">库存分析</span>
+            </div>
+        </section>
+    </main>
+</div>
+<script>
+var evtSource = null;
+
+function sendQuestion() {
+    var q = document.getElementById("questionInput").value.trim();
+    if (!q) return;
+    var batchId = document.getElementById("batchIdInput").value.trim();
+    var url = "/ai/stream?question=" + encodeURIComponent(q);
+    if (batchId) url += "&batchId=" + encodeURIComponent(batchId);
+
+    document.getElementById("answerBox").textContent = "";
+    document.getElementById("streamStatus").textContent = "正在思考...";
+    document.getElementById("sendBtn").style.display = "none";
+    document.getElementById("stopBtn").style.display = "inline-block";
+
+    evtSource = new EventSource(url);
+    evtSource.addEventListener("token", function(e) {
+        document.getElementById("streamStatus").textContent = "输出中...";
+        document.getElementById("answerBox").textContent += e.data;
+    });
+    evtSource.addEventListener("done", function() {
+        document.getElementById("streamStatus").textContent = "完成";
+        cleanup();
+    });
+    evtSource.addEventListener("error", function(e) {
+        if (e.data) document.getElementById("answerBox").textContent += "\n[错误] " + e.data;
+        document.getElementById("streamStatus").textContent = "出错";
+        cleanup();
+    });
+    evtSource.onerror = function() {
+        if (document.getElementById("streamStatus").textContent === "输出中...") {
+            document.getElementById("streamStatus").textContent = "完成";
+        }
+        cleanup();
+    };
+}
+
+function stopStream() {
+    if (evtSource) { evtSource.close(); evtSource = null; }
+    document.getElementById("streamStatus").textContent = "已停止";
+    cleanup();
+}
+
+function cleanup() {
+    if (evtSource) { evtSource.close(); evtSource = null; }
+    document.getElementById("sendBtn").style.display = "inline-block";
+    document.getElementById("stopBtn").style.display = "none";
+}
+
+function fillQuestion(text) {
+    document.getElementById("questionInput").value = text;
+}
+</script>
+</body>
+</html>

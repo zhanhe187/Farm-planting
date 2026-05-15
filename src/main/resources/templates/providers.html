@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('AI 端点')}"></head>
+<body>
+<div class="shell">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments :: topbar('AI 端点动态配置', '管理员配置 Base URL、API Key、模型与场景后即可用于对话和图片识别')}"></div>
+        <div class="notice" th:if="${notice}" th:text="${notice}"></div>
+        <div class="error" th:if="${error}" th:text="${error}"></div>
+
+        <section class="card">
+            <h2>新增 AI 端点</h2>
+            <form method="post" action="/providers" class="provider-form">
+                <input name="name" placeholder="端点名称，如 OpenAI / DeepSeek / 通义千问">
+                <select name="providerType">
+                    <option value="OPENAI_COMPATIBLE">OpenAI 兼容</option>
+                </select>
+                <input name="baseUrl" placeholder="Base URL，如 https://api.openai.com/v1">
+                <input name="apiKey" type="password" placeholder="API Key，仅服务端保存">
+                <input name="defaultModel" placeholder="模型，如 gpt-4o-mini / qwen-vl-plus">
+                <select name="scene">
+                    <option value="CHAT">CHAT 对话</option>
+                    <option value="VISION">VISION 图片识别</option>
+                </select>
+                <input name="priority" type="number" value="1" min="1" placeholder="优先级">
+                <input name="timeoutMs" type="number" value="60000" min="1000" step="1000" placeholder="超时毫秒">
+                <label class="checkline"><input name="enabled" type="checkbox" value="true" checked> 启用</label>
+                <button type="submit">保存端点</button>
+            </form>
+        </section>
+
+        <section class="card" style="margin-top:14px">
+            <h2>端点列表</h2>
+            <table>
+                <tr>
+                    <th>名称</th><th>类型</th><th>场景</th><th>Base URL</th><th>Key</th><th>模型</th><th>优先级</th><th>启用</th><th>操作</th>
+                </tr>
+                <tr th:each="p : ${providers}">
+                    <td th:text="${p['NAME'] ?: p['name']}"></td>
+                    <td th:text="${p['PROVIDER_TYPE'] ?: p['provider_type']}"></td>
+                    <td><span class="status-pill" th:text="${p['SCENE'] ?: p['scene']}"></span></td>
+                    <td th:text="${p['BASE_URL'] ?: p['base_url']}"></td>
+                    <td th:text="${p['API_KEY_MASK'] ?: p['api_key_mask']}"></td>
+                    <td th:text="${p['DEFAULT_MODEL'] ?: p['default_model']}"></td>
+                    <td th:text="${p['PRIORITY'] ?: p['priority']}"></td>
+                    <td th:text="${p['ENABLED'] ?: p['enabled']}"></td>
+                    <td>
+                        <form th:action="@{'/providers/' + ${p['ID'] ?: p['id']} + '/test'}" method="post">
+                            <button type="submit">测试</button>
+                        </form>
+                    </td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="card" style="margin-top:14px">
+            <h2>调用日志</h2>
+            <table>
+                <tr><th>时间</th><th>场景</th><th>摘要</th><th>成功</th><th>耗时 ms</th><th>错误</th></tr>
+                <tr th:each="l : ${logs}">
+                    <td th:text="${l['CREATED_AT'] ?: l['created_at']}"></td>
+                    <td th:text="${l['SCENE'] ?: l['scene']}"></td>
+                    <td th:text="${l['PROMPT_SUMMARY'] ?: l['prompt_summary']}"></td>
+                    <td th:text="${l['SUCCESS'] ?: l['success']}"></td>
+                    <td th:text="${l['ELAPSED_MS'] ?: l['elapsed_ms']}"></td>
+                    <td th:text="${l['ERROR_CODE'] ?: l['error_code']}"></td>
+                </tr>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

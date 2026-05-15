@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('手机扫码')}"></head>
+<body>
+<div class="shell">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments :: topbar('手机扫码连接', '生成一次性手机端绑定二维码，扫码后可拍照上传给 AI 识别')}"></div>
+        <section class="card qr-panel">
+            <div>
+                <h2>一次性 bind_token</h2>
+                <p class="muted">有效期 <span th:text="${ttlSeconds}"></span> 秒，扫码访问后立即作废。</p>
+                <p><strong th:text="${token}"></strong></p>
+                <a class="button" th:href="${url}">在当前浏览器打开手机端</a>
+            </div>
+            <img class="qr-image" th:src="${qrDataUri}" alt="手机绑定二维码">
+        </section>
+    </main>
+</div>
+</body>
+</html>
