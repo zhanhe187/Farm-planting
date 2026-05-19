@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('在售农作物')}"></head>
+<body>
+<div class="shell">
+    <aside th:replace="~{fragments :: sidebar}"></aside>
+    <main class="main">
+        <div th:replace="~{fragments :: topbar('在售农作物', '选择农作物并下单，成功后自动生成销售流水')}"></div>
+        <div class="notice" th:if="${notice}" th:text="${notice}"></div>
+        <div class="error" th:if="${error}" th:text="${error}"></div>
+        <section class="grid market-grid">
+            <article class="card market-card" th:each="c : ${crops}">
+                <div class="market-image"
+                     th:style="${(c['IMAGE_URL'] ?: c['image_url']) != null ? 'background-image:url(' + (c['IMAGE_URL'] ?: c['image_url']) + ')' : ''}"></div>
+                <div class="eyebrow" th:text="${(c['VARIETY'] ?: c['variety']) ?: '通用品种'}"></div>
+                <h2 th:text="${c['NAME'] ?: c['name']}">农作物</h2>
+                <div class="kpi-value" th:text="${((c['SALE_PRICE_PER_KG'] ?: c['sale_price_per_kg']) ?: 0) + ' 元/kg'}">0 元/kg</div>
+                <form method="post" action="/market/orders" class="toolbar">
+                    <input type="hidden" name="cropId" th:value="${c['ID'] ?: c['id']}">
+                    <input type="number" step="0.01" min="0.01" name="quantityKg" placeholder="购买数量(kg)" required>
+                    <button type="submit">立即购买</button>
+                </form>
+            </article>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>我的购买流水</h2>
+            <table>
+                <tr><th>日期</th><th>产品</th><th>数量(kg)</th><th>单价</th><th>金额</th><th>备注</th></tr>
+                <tr th:each="s : ${sales}">
+                    <td th:text="${s['SALE_DATE'] ?: s['sale_date']}"></td>
+                    <td th:text="${s['PRODUCT_NAME'] ?: s['product_name']}"></td>
+                    <td th:text="${s['QUANTITY_KG'] ?: s['quantity_kg']}"></td>
+                    <td th:text="${s['UNIT_PRICE'] ?: s['unit_price']}"></td>
+                    <td th:text="${s['TOTAL_AMOUNT'] ?: s['total_amount']}"></td>
+                    <td th:text="${s['NOTE'] ?: s['note'] ?: ''}"></td>
+                </tr>
+            </table>
+        </section>
+    </main>
+</div>
+</body>
+</html>

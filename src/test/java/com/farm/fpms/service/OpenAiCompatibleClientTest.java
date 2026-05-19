@@ -1,5 +1,7 @@
 package com.farm.fpms.service;
 
+import com.farm.fpms.entity.AiProvider;
+import com.farm.fpms.entity.VisionRecognitionResult;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -8,8 +10,11 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Collections;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.client.ExpectedCount.once;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -33,6 +38,95 @@ class OpenAiCompatibleClientTest {
         String answer = client.chat(provider, "system", "本周如何管理番茄？");
 
         assertThat(answer).isEqualTo("需要保持通风并检查虫害。");
+        server.verify();
+    }
+
+    @Test
+    void sendsChatCompletionToFullRelayEndpointWhenConfigured() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        OpenAiCompatibleClient client = new OpenAiCompatibleClient(restTemplate);
+        AiProvider provider = new AiProvider(8L, "Relay", "OPENAI_COMPATIBLE",
+                "https://www.right.codes/v1/chat/completions", "sk-real", "sk-****real",
+                "gpt-5.4", "CHAT", 1, 30000, true, Collections.emptyMap());
+
+        server.expect(once(), requestTo("https://www.right.codes/v1/chat/completions"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer sk-real"))
+                .andRespond(withSuccess("{\"choices\":[{\"message\":{\"content\":\"pong\"}}]}",
+                        MediaType.APPLICATION_JSON));
+
+        String answer = client.chat(provider, "system", "ping");
+
+        assertThat(answer).isEqualTo("pong");
+        server.verify();
+    }
+
+    @Test
+    void appendsChatCompletionsToRelayBasePath() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        OpenAiCompatibleClient client = new OpenAiCompatibleClient(restTemplate);
+        AiProvider provider = new AiProvider(9L, "Relay", "OPENAI_COMPATIBLE",
+                "https://www.right.codes/v1", "sk-real", "sk-****real",
+                "gpt-5.4", "CHAT", 1, 30000, true, Collections.emptyMap());
+
+        server.expect(once(), requestTo("https://www.right.codes/v1/chat/completions"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\"choices\":[{\"message\":{\"content\":\"pong\"}}]}",
+                        MediaType.APPLICATION_JSON));
+
+        String answer = client.chat(provider, "system", "ping");
+
+        assertThat(answer).isEqualTo("pong");
+        server.verify();
+    }
+
+    @Test
+    void sendsTextRequestToResponsesEndpointWhenConfigured() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        OpenAiCompatibleClient client = new OpenAiCompatibleClient(restTemplate);
+        AiProvider provider = new AiProvider(10L, "Responses Relay", "OPENAI_COMPATIBLE",
+                "https://www.right.codes/v1/responses", "sk-real", "sk-****real",
+                "gpt-5.4", "CHAT", 1, 30000, true, Collections.emptyMap());
+
+        server.expect(once(), requestTo("https://www.right.codes/v1/responses"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("Authorization", "Bearer sk-real"))
+                .andExpect(content().string(containsString("\"model\":\"gpt-5.4\"")))
+                .andExpect(content().string(containsString("\"instructions\":\"system\"")))
+                .andExpect(content().string(containsString("\"input\":\"ping\"")))
+                .andRespond(withSuccess("{\"output_text\":\"pong\"}", MediaType.APPLICATION_JSON));
+
+        String answer = client.chat(provider, "system", "ping");
+
+        assertThat(answer).isEqualTo("pong");
+        server.verify();
+    }
+
+    @Test
+    void sendsVisionRequestToResponsesEndpointWithInputImage() {
+        RestTemplate restTemplate = new RestTemplate();
+        MockRestServiceServer server = MockRestServiceServer.bindTo(restTemplate).build();
+        OpenAiCompatibleClient client = new OpenAiCompatibleClient(restTemplate);
+        AiProvider provider = new AiProvider(11L, "Responses Vision Relay", "OPENAI_COMPATIBLE",
+                "https://www.right.codes/v1/responses", "sk-real", "sk-****real",
+                "gpt-5.4", "VISION", 1, 30000, true, Collections.emptyMap());
+
+        server.expect(once(), requestTo("https://www.right.codes/v1/responses"))
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(content().string(containsString("\"type\":\"input_text\"")))
+                .andExpect(content().string(containsString("\"type\":\"input_image\"")))
+                .andExpect(content().string(containsString("\"image_url\":\"data:image/jpeg;base64,AAAA\"")))
+                .andExpect(content().string(not(containsString("\"type\":\"image_url\""))))
+                .andRespond(withSuccess("{\"output\":[{\"content\":[{\"type\":\"output_text\",\"text\":\"{\\\"name\\\":\\\"番茄\\\",\\\"usage\\\":\\\"鲜食\\\",\\\"cultivation\\\":\\\"日照充足\\\"}\"}]}]}",
+                        MediaType.APPLICATION_JSON));
+
+        VisionRecognitionResult result = client.recognize(provider, "data:image/jpeg;base64,AAAA");
+
+        assertThat(result.getName()).isEqualTo("番茄");
+        assertThat(result.getUsage()).contains("鲜食");
         server.verify();
     }
 

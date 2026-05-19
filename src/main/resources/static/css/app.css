@@ -202,12 +202,32 @@ h2 {
     grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
 }
 
+.market-grid {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
 .card {
     background: linear-gradient(180deg, rgba(34, 52, 41, 0.94), rgba(27, 39, 31, 0.94));
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.market-card {
+    display: grid;
+    gap: 12px;
+}
+
+.market-image {
+    min-height: 150px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background:
+        linear-gradient(135deg, rgba(143, 208, 106, 0.20), rgba(214, 160, 68, 0.16)),
+        #152019;
+    background-size: cover;
+    background-position: center;
 }
 
 .kpi-label {
@@ -405,6 +425,23 @@ button.secondary,
 
 .provider-form button {
     grid-column: span 1;
+}
+
+.provider-table input,
+.provider-table select {
+    width: 100%;
+    min-width: 120px;
+}
+
+.provider-table input[type="checkbox"] {
+    width: auto;
+    min-width: 0;
+}
+
+.action-stack {
+    display: grid;
+    gap: 8px;
+    min-width: 86px;
 }
 
 .checkline {

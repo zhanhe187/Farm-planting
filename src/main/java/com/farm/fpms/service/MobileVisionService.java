@@ -1,6 +1,8 @@
 package com.farm.fpms.service;
 
-import com.farm.fpms.domain.BusinessException;
+import com.farm.fpms.common.BusinessException;
+import com.farm.fpms.entity.AiProvider;
+import com.farm.fpms.entity.VisionRecognitionResult;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class MobileVisionService {
     public VisionRecognitionResult recognize(MultipartFile image) {
         validate(image);
         AiProvider provider = aiProviderService.requireProvider("VISION");
+        requireRealVisionProvider(provider);
         long start = System.nanoTime();
         try {
             byte[] imageBytes = image.getBytes();
@@ -46,6 +49,17 @@ public class MobileVisionService {
             aiProviderService.logCall(provider.getId(), "VISION", "手机端拍照识别：" + image.getOriginalFilename(),
                     false, Duration.ofNanos(System.nanoTime() - start), ex.getClass().getSimpleName());
             throw ex;
+        }
+    }
+
+    private void requireRealVisionProvider(AiProvider provider) {
+        String providerType = provider.getProviderType() == null ? "" : provider.getProviderType();
+        String baseUrl = provider.getBaseUrl() == null ? "" : provider.getBaseUrl().toLowerCase();
+        if ("LOCAL_FALLBACK".equalsIgnoreCase(providerType) || baseUrl.contains("mock-vision")) {
+            throw new BusinessException("请先配置真实图片识别 AI 端点，再使用手机拍照识别");
+        }
+        if (AiProviderService.isDeepSeek(provider.getBaseUrl(), provider.getDefaultModel())) {
+            throw new BusinessException("DeepSeek 不支持图片输入，不能作为 VISION 拍照识别端点；请在 AI 端点管理中配置支持图片输入的模型");
         }
     }
 

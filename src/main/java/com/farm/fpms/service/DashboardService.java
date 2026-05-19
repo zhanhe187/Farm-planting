@@ -22,14 +22,14 @@ public class DashboardService {
         Map<String, Object> data = new LinkedHashMap<String, Object>();
         data.put("plotCount", jdbcTemplate.queryForObject("select count(*) from farm_plot", Integer.class));
         data.put("activeBatchCount", jdbcTemplate.queryForObject(
-                "select count(*) from plant_batch where status not in ('COMPLETED','ABANDONED')", Integer.class));
+                "select count(*) from plant_batch where status not in (N'已完结',N'已废弃')", Integer.class));
         data.put("readyHarvestCount", jdbcTemplate.queryForObject(
-                "select count(*) from plant_batch where status = 'READY_HARVEST'", Integer.class));
+                "select count(*) from plant_batch where status = N'待采收'", Integer.class));
         data.put("lowStockCount", jdbcTemplate.queryForObject(
                 "select count(*) from stock_inventory where quantity <= safety_stock", Integer.class));
         data.put("plots", jdbcTemplate.queryForList(
                 "select p.*, b.batch_no, b.status batch_status, c.name crop_name, b.sow_date, b.expected_harvest_date " +
-                        "from farm_plot p left join plant_batch b on b.plot_id = p.id and b.status not in ('COMPLETED','ABANDONED') " +
+                        "from farm_plot p left join plant_batch b on b.plot_id = p.id and b.status not in (N'已完结',N'已废弃') " +
                         "left join farm_crop c on c.id = b.crop_id order by p.id"));
         data.put("recentOperations", jdbcTemplate.queryForList(
                 "select o.*, b.batch_no, c.name crop_name from plant_operation o " +
@@ -51,7 +51,7 @@ public class DashboardService {
 
     public List<Map<String, Object>> batches() {
         return jdbcTemplate.queryForList(
-                "select b.*, p.name plot_name, c.name crop_name, c.variety crop_variety from plant_batch b " +
+                "select b.*, p.name plot_name, c.name crop_name, c.variety crop_variety, c.sale_price_per_kg crop_sale_price_per_kg from plant_batch b " +
                         "join farm_plot p on p.id = b.plot_id join farm_crop c on c.id = b.crop_id order by b.id desc");
     }
 }

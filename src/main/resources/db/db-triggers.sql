@@ -9,7 +9,7 @@ on dbo.plant_operation
 after update, delete
 as
 begin
-    raiserror('Operation log is immutable. Insert a CORRECTION event instead.', 16, 1);
+    raiserror(N'农事作业事件不可修改或删除，请追加“红冲修正”事件。', 16, 1);
     rollback transaction;
 end;
 go

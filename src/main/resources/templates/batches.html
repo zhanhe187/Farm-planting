@@ -9,19 +9,86 @@
         <div class="notice" th:if="${notice}" th:text="${notice}"></div>
         <div class="error" th:if="${error}" th:text="${error}"></div>
         <section class="card">
+            <h2>新增种植批次</h2>
+            <form method="post" action="/batches" class="toolbar">
+                <input name="batchNo" placeholder="批次号，如 2026冬-生菜-1号" required>
+                <select name="plotId" required>
+                    <option th:each="p : ${plots}" th:value="${p['ID'] ?: p['id']}" th:text="${(p['NAME'] ?: p['name']) + ' / ' + (p['AREA_MU'] ?: p['area_mu']) + '亩'}"></option>
+                </select>
+                <select name="cropId" required>
+                    <option th:each="c : ${crops}" th:value="${c['ID'] ?: c['id']}"
+                            th:text="${(c['NAME'] ?: c['name']) + ' · ' + ((c['VARIETY'] ?: c['variety']) ?: '通用品种') + ' · 参考价 ' + ((c['SALE_PRICE_PER_KG'] ?: c['sale_price_per_kg']) ?: 0) + ' 元/kg'}"></option>
+                </select>
+                <input type="number" step="0.01" name="plannedAreaMu" placeholder="计划面积(亩)" required>
+                <input type="date" name="sowDate" title="播种日期">
+                <input type="date" name="expectedHarvestDate" title="预计采收日期" required>
+                <button type="submit">创建批次</button>
+            </form>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>自定义可种植农作物</h2>
+            <p class="muted">这里添加后，马上可以在上方“新增种植批次”和农资库存的“种子对应作物”中选择。</p>
+            <form method="post" action="/crops" class="toolbar">
+                <input type="hidden" name="redirectTo" value="/batches">
+                <input name="name" placeholder="作物名称，如 西兰花" required>
+                <input name="variety" placeholder="品种，如 耐寒青梗">
+                <input type="number" name="minGrowthDays" min="1" placeholder="生长周期(天)" required>
+                <input type="number" step="0.01" min="0" name="salePricePerKg" placeholder="参考售价(元/kg)" required>
+                <input name="imageUrl" placeholder="图片地址，可不填">
+                <button type="submit">添加作物</button>
+            </form>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>农作物目录维护</h2>
+            <p class="muted">参考售价是当前目录价，可随市场变化调整；销售订单仍会保留实际成交价。停用后不影响历史批次和溯源记录。</p>
             <table>
-                <tr><th>批次号</th><th>地块</th><th>作物</th><th>状态</th><th>播种日</th><th>预计采收</th><th>状态推进</th></tr>
+                <tr><th>名称</th><th>品种</th><th>生长周期</th><th>参考售价</th><th>状态</th><th>操作</th></tr>
+                <tr th:each="c : ${cropCatalog}">
+                    <td>
+                        <input th:attr="form=${'crop-form-' + (c['ID'] ?: c['id'])}" name="name" th:value="${c['NAME'] ?: c['name']}" required>
+                    </td>
+                    <td>
+                        <input th:attr="form=${'crop-form-' + (c['ID'] ?: c['id'])}" name="variety" th:value="${c['VARIETY'] ?: c['variety']}">
+                    </td>
+                    <td>
+                        <input th:attr="form=${'crop-form-' + (c['ID'] ?: c['id'])}" type="number" min="1" name="minGrowthDays" th:value="${c['MIN_GROWTH_DAYS'] ?: c['min_growth_days']}" required>
+                    </td>
+                    <td>
+                        <input th:attr="form=${'crop-form-' + (c['ID'] ?: c['id'])}" type="number" step="0.01" min="0" name="salePricePerKg" th:value="${c['SALE_PRICE_PER_KG'] ?: c['sale_price_per_kg']}" required>
+                    </td>
+                    <td>
+                        <span class="status-pill" th:text="${((c['ENABLED'] ?: c['enabled']) == true || (c['ENABLED'] ?: c['enabled']) == 1) ? '启用' : '已停用'}"></span>
+                    </td>
+                    <td>
+                        <form th:id="${'crop-form-' + (c['ID'] ?: c['id'])}" th:action="@{'/crops/' + ${c['ID'] ?: c['id']}}" method="post" class="inline">
+                            <input type="hidden" name="redirectTo" value="/batches">
+                            <input type="hidden" name="imageUrl" th:value="${c['IMAGE_URL'] ?: c['image_url']}">
+                            <button type="submit">保存</button>
+                        </form>
+                        <form th:action="@{'/crops/' + ${c['ID'] ?: c['id']} + '/delete'}" method="post" class="inline"
+                              onsubmit="return confirm('停用后不会影响历史批次，但不能再用于新建批次或新种子绑定。确认停用？');">
+                            <input type="hidden" name="redirectTo" value="/batches">
+                            <button class="secondary" type="submit">停用</button>
+                        </form>
+                    </td>
+                </tr>
+            </table>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <table>
+                <tr><th>批次号</th><th>地块</th><th>作物</th><th>参考售价</th><th>状态</th><th>播种日</th><th>预计采收</th><th>状态推进</th></tr>
                 <tr th:each="b : ${batches}">
                     <td th:text="${b['BATCH_NO'] ?: b['batch_no']}"></td>
                     <td th:text="${b['PLOT_NAME'] ?: b['plot_name']}"></td>
                     <td th:text="${(b['CROP_NAME'] ?: b['crop_name']) + ' · ' + (b['CROP_VARIETY'] ?: b['crop_variety'])}"></td>
+                    <td th:text="${((b['CROP_SALE_PRICE_PER_KG'] ?: b['crop_sale_price_per_kg']) ?: 0) + ' 元/kg'}"></td>
                     <td><span class="status-pill" th:text="${label.batchStatus(b['STATUS'] ?: b['status'])}"></span></td>
                     <td th:text="${b['SOW_DATE'] ?: b['sow_date']}"></td>
                     <td th:text="${b['EXPECTED_HARVEST_DATE'] ?: b['expected_harvest_date']}"></td>
                     <td>
                         <form class="inline" th:action="@{'/batches/' + ${b['ID'] ?: b['id']} + '/advance'}" method="post">
                             <select name="target">
-                                <option th:each="s : ${statuses}" th:value="${s.name()}" th:text="${label.batchStatus(s.name())}"></option>
+                                <option th:each="s : ${statuses}" th:value="${s.getLabel()}" th:text="${s.getLabel()}"></option>
                             </select>
                             <button type="submit">推进</button>
                         </form>

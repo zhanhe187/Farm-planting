@@ -27,7 +27,9 @@ create table dbo.farm_crop (
     name nvarchar(80) not null,
     variety nvarchar(80),
     min_growth_days int not null,
-    image_url nvarchar(300)
+    sale_price_per_kg decimal(14,2) not null default 0,
+    image_url nvarchar(300),
+    enabled bit not null default 1
 );
 
 create table dbo.farm_material (
@@ -36,6 +38,8 @@ create table dbo.farm_material (
     category varchar(40) not null,
     unit nvarchar(20) not null,
     safe_interval_days int not null default 0,
+    unit_price decimal(14,2) not null default 0,
+    crop_id bigint,
     enabled bit not null default 1
 );
 
@@ -45,6 +49,15 @@ create table dbo.stock_inventory (
     quantity decimal(14,2) not null,
     safety_stock decimal(14,2) not null,
     version int not null default 0
+);
+
+create table dbo.stock_in_order (
+    id bigint identity(1,1) primary key,
+    material_id bigint not null,
+    quantity decimal(14,2) not null,
+    unit_price decimal(14,2) not null,
+    total_amount decimal(14,2) not null,
+    created_at datetime2 not null default sysdatetime()
 );
 
 create table dbo.plant_batch (

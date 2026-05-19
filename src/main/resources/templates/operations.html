@@ -15,18 +15,20 @@
                     <option th:each="b : ${batches}" th:value="${b['ID'] ?: b['id']}" th:text="${b['BATCH_NO'] ?: b['batch_no']}"></option>
                 </select>
                 <select name="type">
-                    <option value="SOWING">播种</option>
-                    <option value="FERTILIZE">施肥</option>
-                    <option value="PESTICIDE">施药</option>
-                    <option value="IRRIGATION">灌溉</option>
-                    <option value="PEST_CHECK">病虫害巡检</option>
+                    <option value="播种">播种</option>
+                    <option value="施肥">施肥</option>
+                    <option value="施药">施药</option>
+                    <option value="灌溉">灌溉</option>
+                    <option value="除草">除草</option>
+                    <option value="病虫害巡检">病虫害巡检</option>
+                    <option value="采收">采收</option>
                 </select>
                 <input type="date" name="operationDate" value="2026-05-14">
                 <input name="workerName" value="田间工人阿强">
                 <select name="materialId">
                     <option value="">不消耗农资</option>
                     <option th:each="m : ${materials}" th:value="${m['ID'] ?: m['id']}"
-                            th:text="${(m['NAME'] ?: m['name']) + ' / 库存 ' + (m['STOCK_QUANTITY'] ?: m['stock_quantity'])}"></option>
+                            th:text="${(m['NAME'] ?: m['name']) + ' / 库存 ' + (m['STOCK_QUANTITY'] ?: m['stock_quantity']) + ' / 单价 ' + ((m['UNIT_PRICE'] ?: m['unit_price']) ?: 0) + ' 元' + (((m['CROP_NAME'] ?: m['crop_name']) != null) ? ' / 对应' + (m['CROP_NAME'] ?: m['crop_name']) : '')}"></option>
                 </select>
                 <input type="number" step="0.01" name="quantity" placeholder="消耗数量">
                 <input name="note" placeholder="作业说明">

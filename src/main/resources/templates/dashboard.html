@@ -52,7 +52,7 @@
                 </tr>
             </table>
         </section>
-        <a class="ai-float" href="/ai/chat">AI 农事助手</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/ai/chat')}" class="ai-float" href="/ai/chat">AI 农事助手</a>
     </main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>

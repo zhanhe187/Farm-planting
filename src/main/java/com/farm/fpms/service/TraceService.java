@@ -4,10 +4,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,13 +18,15 @@ public class TraceService {
 
     private final JdbcTemplate jdbcTemplate;
     private final QrCodeService qrCodeService;
+    private final LanAccessService lanAccessService;
 
     @Value("${fpms.trace.base-url:http://localhost:8080/trace/}")
     private String traceBaseUrl;
 
-    public TraceService(JdbcTemplate jdbcTemplate, QrCodeService qrCodeService) {
+    public TraceService(JdbcTemplate jdbcTemplate, QrCodeService qrCodeService, LanAccessService lanAccessService) {
         this.jdbcTemplate = jdbcTemplate;
         this.qrCodeService = qrCodeService;
+        this.lanAccessService = lanAccessService;
     }
 
     public Map<String, Object> publicTrace(String code) {
@@ -35,6 +39,7 @@ public class TraceService {
             return null;
         }
         Map<String, Object> trace = new HashMap<String, Object>(rows.get(0));
+        addCaseAliases(trace);
 
         Set<String> publicFields = loadPublicFields();
         List<Map<String, Object>> timeline = jdbcTemplate.queryForList(
@@ -45,12 +50,19 @@ public class TraceService {
                 op.put("note", "***");
             }
         }
+        for (Map<String, Object> op : timeline) {
+            addCaseAliases(op);
+        }
         trace.put("timeline", timeline);
         return trace;
     }
 
-    public String generateQrDataUri(String traceCode) {
-        return qrCodeService.toDataUri(traceBaseUrl + traceCode);
+    public String traceUrl(HttpServletRequest request, String traceCode) {
+        return lanAccessService.traceUrl(request, traceBaseUrl, traceCode);
+    }
+
+    public String generateQrDataUri(HttpServletRequest request, String traceCode) {
+        return qrCodeService.toDataUri(traceUrl(request, traceCode));
     }
 
     private Set<String> loadPublicFields() {
@@ -62,5 +74,16 @@ public class TraceService {
             if (key != null) fields.add(key.toString());
         }
         return fields;
+    }
+
+    private void addCaseAliases(Map<String, Object> row) {
+        Map<String, Object> copy = new HashMap<String, Object>(row);
+        for (Map.Entry<String, Object> entry : copy.entrySet()) {
+            String key = entry.getKey();
+            if (key != null) {
+                row.putIfAbsent(key.toLowerCase(Locale.ROOT), entry.getValue());
+                row.putIfAbsent(key.toUpperCase(Locale.ROOT), entry.getValue());
+            }
+        }
     }
 }

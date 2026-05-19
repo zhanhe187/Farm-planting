@@ -1,6 +1,6 @@
 # FPMS 智慧农场种植管理系统
 
-这是根据 `D:\javacode\农场种植管理系统-规划文档.md` 编写的 Java Web 项目。
+这是一个基于 Spring Boot + Thymeleaf + SQL Server 的智慧农场种植管理系统，覆盖种植、农资、采收、溯源、销售和客户自助购买闭环。
 
 ## 技术栈
 
@@ -39,9 +39,11 @@ mvn spring-boot:run
 
 - 后台：`http://localhost:8080`
 
+手机扫码请让手机和电脑处于同一局域网。PC 端进入 `/mobile` 后，二维码会自动使用电脑的局域网 IP；也可以通过环境变量 `FPMS_MOBILE_BASE_URL` 手动指定，例如 `http://192.168.5.93:8080/m/bind`。
+
 ## 默认账号
 
-本地初始化账号见 [落地部署与运行说明](D:/javacode/fpms-mvp/docs/落地部署与运行说明.md)。初始化密码为 `123456`。
+初始化密码均为 `123456`。
 
 | 账号 | 角色 |
 | --- | --- |
@@ -52,18 +54,31 @@ mvn spring-boot:run
 | `worker` | FIELD_WORKER |
 | `customer` | CUSTOMER |
 
-## 已实现的规划文档核心点
+权限按角色在菜单和后端路由同时拦截：只有 `SUPER_ADMIN` 可管理 AI 端点；`WAREHOUSE` 只能进入库存模块，并可在库存页新增种子绑定作物；公开注册账号默认为 `CUSTOMER / OWN_CUSTOMER`，可在“购买农作物”中自助购买在售作物，并查看本人客户名匹配的销售流水。
+
+## 核心功能
 
 - C1 批次生命周期状态机
 - C2 农事作业事件流，SQL Server 触发器脚本禁止 UPDATE/DELETE
 - C3 农资库存与作业联动扣减
 - C4 农药安全间隔期预检与采收强校验
 - C5 追溯码与免登录公开页
+- C6 角色菜单与后端路由权限拦截
 - C7 地块 Canvas 布局图
 - C8 轻量驾驶舱图表
+- C9 客户自助购买在售农作物并生成销售流水
 - C10 AI 农事助手入口和 SSE-ready 接口
-- C11 AI 端点配置与调用日志
-- C12 手机 bind_token 绑定和拍照识作物
+- C11 AI 端点配置、编辑、删除、测试与调用日志
+- C12 手机 bind_token SQL Server 持久化绑定和拍照识作物
+
+## AI 端点配置
+
+管理员登录后进入 `AI 端点管理`：
+
+- DeepSeek 适合作为 CHAT 文本对话端点：Base URL 填 `https://api.deepseek.com`，模型可填 `deepseek-chat`，场景选择 `CHAT`。
+- 手机拍照识别需要单独配置支持图片输入的 OpenAI 兼容 VISION 端点，场景选择 `VISION`。
+- API Key 只在服务端加密保存，页面仅显示脱敏值；编辑端点时 API Key 留空会保留原值。
+- 默认初始化只提供禁用示例，不再启用本地 mock 端点。
 
 ## 重要脚本
 
@@ -81,8 +96,8 @@ mvn spring-boot:run
 & 'C:\Program Files\JetBrains\IntelliJ IDEA 2026.1\apache-maven-3.9.10\bin\mvn.cmd' test
 ```
 
-测试覆盖：状态机、间隔期、库存扣减、Prompt 脱敏、一次性 bind_token。
+测试覆盖：状态机、间隔期、库存扣减、客户购买流水、权限拦截、Prompt 脱敏、一次性 bind_token。
 
-## 落地说明
+## 使用说明
 
-部署、初始化账号、SQL Server 切换和生产增强建议见 [docs/落地部署与运行说明.md](D:/javacode/fpms-mvp/docs/落地部署与运行说明.md)。
+系统运行逻辑、角色权限和业务操作说明见 [doc/系统使用说明文档.md](D:/javacode/fpms-mvp/doc/系统使用说明文档.md)。

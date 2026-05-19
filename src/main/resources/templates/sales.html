@@ -7,18 +7,19 @@
     <main class="main">
         <div th:replace="~{fragments :: topbar('销售记录', '记录农产品销售情况，关联批次追溯')}"></div>
         <div class="notice" th:if="${notice}" th:text="${notice}"></div>
-        <section class="card">
+        <div class="error" th:if="${error}" th:text="${error}"></div>
+        <section class="card" th:if="${canCreateSales}">
             <h2>新增销售</h2>
             <form method="post" action="/sales" class="toolbar">
                 <input name="customerName" placeholder="客户名称" required>
                 <input name="productName" placeholder="产品名称" required>
-                <input type="number" step="0.01" name="quantityKg" placeholder="数量(kg)" required>
-                <input type="number" step="0.01" name="unitPrice" placeholder="单价(元/kg)" required>
+                <input type="number" step="0.01" min="0.01" name="quantityKg" placeholder="数量(kg)" required>
+                <input type="number" step="0.01" min="0" name="unitPrice" placeholder="单价(元/kg)" required>
                 <input type="date" name="saleDate" required>
                 <select name="batchId">
                     <option value="">不关联批次</option>
                     <option th:each="b : ${batches}" th:value="${b['ID'] ?: b['id']}"
-                            th:text="${b['BATCH_NO'] ?: b['batch_no']}"></option>
+                            th:text="${(b['BATCH_NO'] ?: b['batch_no']) + ' / ' + (b['CROP_NAME'] ?: b['crop_name']) + ' / 参考价 ' + ((b['SALE_PRICE_PER_KG'] ?: b['sale_price_per_kg']) ?: 0) + ' 元/kg'}"></option>
                 </select>
                 <input name="note" placeholder="备注">
                 <button type="submit">保存</button>

@@ -20,9 +20,11 @@ class SqlServerInitScriptTest {
         assertThat(sql).contains("create table dbo.ai_recognize_log");
         assertThat(sql).contains("insert into dbo.sys_user");
         assertThat(sql).contains("owner', '123456'");
-        assertThat(sql).contains("batch-20260501-tomato");
+        assertThat(sql).contains("2026春-番茄-1号");
         assertThat(sql).contains("trg_operation_block_update");
         assertThat(sql).contains("v_batch_yield_summary");
+        assertThat(sql).contains("深度求索对话示例");
+        assertThat(sql).doesNotContain("mock-vision");
     }
 
     private String resourceText(String path) throws Exception {

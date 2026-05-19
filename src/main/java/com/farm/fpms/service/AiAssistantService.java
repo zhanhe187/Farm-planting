@@ -1,5 +1,6 @@
 package com.farm.fpms.service;
 
+import com.farm.fpms.entity.AiProvider;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -8,6 +9,9 @@ import java.util.function.Consumer;
 
 @Service
 public class AiAssistantService {
+
+    private static final String ACTIVE_BATCH_COUNT_SQL =
+            "select count(*) from plant_batch where status not in (N'已完结',N'已废弃')";
 
     private final JdbcTemplate jdbcTemplate;
     private final PromptBuilder promptBuilder;
@@ -24,7 +28,7 @@ public class AiAssistantService {
 
     public String answer(String question, Long batchId) {
         String context = "全场概况：在种批次 " + jdbcTemplate.queryForObject(
-                "select count(*) from plant_batch where status not in ('COMPLETED','ABANDONED')", Integer.class) + " 个。";
+                ACTIVE_BATCH_COUNT_SQL, Integer.class) + " 个。";
         if (batchId != null) {
             Map<String, Object> batch = jdbcTemplate.queryForMap(
                     "select b.batch_no, b.status, c.name crop_name, p.name plot_name, b.sow_date " +
@@ -49,7 +53,7 @@ public class AiAssistantService {
 
     public void streamAnswer(String question, Long batchId, Consumer<String> tokenConsumer) {
         String context = "全场概况：在种批次 " + jdbcTemplate.queryForObject(
-                "select count(*) from plant_batch where status not in ('COMPLETED','ABANDONED')", Integer.class) + " 个。";
+                ACTIVE_BATCH_COUNT_SQL, Integer.class) + " 个。";
         if (batchId != null) {
             Map<String, Object> batch = jdbcTemplate.queryForMap(
                     "select b.batch_no, b.status, c.name crop_name, p.name plot_name, b.sow_date " +

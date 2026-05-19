@@ -11,14 +11,15 @@
 
         <section class="card">
             <h2>新增 AI 端点</h2>
-            <form method="post" action="/providers" class="provider-form">
-                <input name="name" placeholder="端点名称，如 OpenAI / DeepSeek / 通义千问">
+            <p class="muted">Chat Completions 兼容端点可填 https://www.right.codes/v1/chat/completions；仅支持 Responses API 的中转站请填完整端点 https://www.right.codes/v1/responses。手机拍照识别需要配置支持图片输入的 VISION 端点。</p>
+            <form method="post" action="/providers" class="provider-form" autocomplete="off">
+                <input name="name" placeholder="端点名称，如 DeepSeek Chat / 视觉识别" autocomplete="off">
                 <select name="providerType">
                     <option value="OPENAI_COMPATIBLE">OpenAI 兼容</option>
                 </select>
-                <input name="baseUrl" placeholder="Base URL，如 https://api.openai.com/v1">
-                <input name="apiKey" type="password" placeholder="API Key，仅服务端保存">
-                <input name="defaultModel" placeholder="模型，如 gpt-4o-mini / qwen-vl-plus">
+                <input name="baseUrl" placeholder="如 https://www.right.codes/v1/responses" autocomplete="off">
+                <input name="apiKey" type="password" placeholder="API Key，仅服务端保存" autocomplete="new-password">
+                <input name="defaultModel" placeholder="模型，如 gpt-5.4 / deepseek-chat / qwen-vl-plus" autocomplete="off">
                 <select name="scene">
                     <option value="CHAT">CHAT 对话</option>
                     <option value="VISION">VISION 图片识别</option>
@@ -32,23 +33,54 @@
 
         <section class="card" style="margin-top:14px">
             <h2>端点列表</h2>
-            <table>
+            <table class="provider-table">
                 <tr>
                     <th>名称</th><th>类型</th><th>场景</th><th>Base URL</th><th>Key</th><th>模型</th><th>优先级</th><th>启用</th><th>操作</th>
                 </tr>
                 <tr th:each="p : ${providers}">
-                    <td th:text="${p['NAME'] ?: p['name']}"></td>
-                    <td th:text="${p['PROVIDER_TYPE'] ?: p['provider_type']}"></td>
-                    <td><span class="status-pill" th:text="${p['SCENE'] ?: p['scene']}"></span></td>
-                    <td th:text="${p['BASE_URL'] ?: p['base_url']}"></td>
-                    <td th:text="${p['API_KEY_MASK'] ?: p['api_key_mask']}"></td>
-                    <td th:text="${p['DEFAULT_MODEL'] ?: p['default_model']}"></td>
-                    <td th:text="${p['PRIORITY'] ?: p['priority']}"></td>
-                    <td th:text="${p['ENABLED'] ?: p['enabled']}"></td>
                     <td>
-                        <form th:action="@{'/providers/' + ${p['ID'] ?: p['id']} + '/test'}" method="post">
-                            <button type="submit">测试</button>
-                        </form>
+                        <input name="name" autocomplete="off" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}" th:value="${p['NAME'] ?: p['name']}">
+                    </td>
+                    <td>
+                        <select name="providerType" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}">
+                            <option value="OPENAI_COMPATIBLE" th:selected="${(p['PROVIDER_TYPE'] ?: p['provider_type']) == 'OPENAI_COMPATIBLE'}">OpenAI 兼容</option>
+                            <option value="LOCAL_FALLBACK" th:selected="${(p['PROVIDER_TYPE'] ?: p['provider_type']) == 'LOCAL_FALLBACK'}">本地演示</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select name="scene" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}">
+                            <option value="CHAT" th:selected="${(p['SCENE'] ?: p['scene']) == 'CHAT'}">CHAT</option>
+                            <option value="VISION" th:selected="${(p['SCENE'] ?: p['scene']) == 'VISION'}">VISION</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input name="baseUrl" autocomplete="off" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}" th:value="${p['BASE_URL'] ?: p['base_url']}">
+                    </td>
+                    <td>
+                        <div class="muted" th:text="${p['API_KEY_MASK'] ?: p['api_key_mask']}"></div>
+                        <input name="apiKey" type="password" placeholder="留空保留" autocomplete="new-password" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}">
+                    </td>
+                    <td>
+                        <input name="defaultModel" autocomplete="off" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}" th:value="${p['DEFAULT_MODEL'] ?: p['default_model']}">
+                    </td>
+                    <td>
+                        <input name="priority" type="number" min="1" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}" th:value="${p['PRIORITY'] ?: p['priority']}">
+                    </td>
+                    <td>
+                        <input name="timeoutMs" type="hidden" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}" th:value="${p['TIMEOUT_MS'] ?: p['timeout_ms']}">
+                        <label class="checkline"><input name="enabled" type="checkbox" value="true" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}" th:checked="${p['ENABLED'] ?: p['enabled']}"> 启用</label>
+                    </td>
+                    <td>
+                        <form th:id="${'provider-form-' + (p['ID'] ?: p['id'])}" th:action="@{'/providers/' + ${p['ID'] ?: p['id']}}" method="post" autocomplete="off"></form>
+                        <div class="action-stack">
+                            <button type="submit" th:attr="form=${'provider-form-' + (p['ID'] ?: p['id'])}">保存</button>
+                            <form th:action="@{'/providers/' + ${p['ID'] ?: p['id']} + '/test'}" method="post">
+                                <button type="submit">测试</button>
+                            </form>
+                            <form th:action="@{'/providers/' + ${p['ID'] ?: p['id']} + '/delete'}" method="post" onsubmit="return confirm('确认删除该 AI 端点？');">
+                                <button class="secondary" type="submit">删除</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
             </table>

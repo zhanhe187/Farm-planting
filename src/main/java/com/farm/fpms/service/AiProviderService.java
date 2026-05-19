@@ -1,6 +1,8 @@
 package com.farm.fpms.service;
 
-import com.farm.fpms.domain.BusinessException;
+import com.farm.fpms.common.BusinessException;
+import com.farm.fpms.entity.AiProvider;
+import com.farm.fpms.entity.AiProviderForm;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -52,6 +54,10 @@ public class AiProviderService {
                 keyCodec.encode(form.getApiKey()), AiKeyCodec.mask(form.getApiKey()), trim(form.getDefaultModel()),
                 trim(form.getScene()).toUpperCase(), form.getPriority(), normalizedTimeout(form.getTimeoutMs()),
                 form.isEnabled(), id);
+    }
+
+    public void deleteProvider(long id) {
+        jdbcTemplate.update("delete from ai_provider where id = ?", id);
     }
 
     public List<Map<String, Object>> listProviderRows() {
@@ -123,6 +129,15 @@ public class AiProviderService {
         if (!"CHAT".equals(scene) && !"VISION".equals(scene)) {
             throw new BusinessException("AI 场景只支持 CHAT 或 VISION");
         }
+        if ("VISION".equals(scene) && isDeepSeek(form.getBaseUrl(), form.getDefaultModel())) {
+            throw new BusinessException("DeepSeek 端点只能用于 CHAT 文本对话；手机拍照识别请配置支持图片输入的 VISION 模型");
+        }
+    }
+
+    static boolean isDeepSeek(String baseUrl, String model) {
+        String base = baseUrl == null ? "" : baseUrl.toLowerCase();
+        String modelName = model == null ? "" : model.toLowerCase();
+        return base.contains("deepseek.com") || modelName.startsWith("deepseek");
     }
 
     private int normalizedTimeout(int timeoutMs) {

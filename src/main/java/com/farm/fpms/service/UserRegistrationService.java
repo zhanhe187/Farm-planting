@@ -1,6 +1,6 @@
 package com.farm.fpms.service;
 
-import com.farm.fpms.domain.BusinessException;
+import com.farm.fpms.common.BusinessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +32,7 @@ public class UserRegistrationService {
 
         jdbcTemplate.update(
                 "insert into sys_user(username, password, display_name, role_code, data_scope, enabled) values (?, ?, ?, ?, ?, 1)",
-                cleanUsername, cleanPassword, cleanDisplayName, "FARM_OWNER", "ALL");
+                cleanUsername, cleanPassword, cleanDisplayName, "CUSTOMER", "OWN_CUSTOMER");
     }
 
     private String trim(String value) {

@@ -6,18 +6,83 @@
     <aside th:replace="~{fragments :: sidebar}"></aside>
     <main class="main">
         <div th:replace="~{fragments :: topbar('农资库存', '作业消耗农资后自动生成出库流水')}"></div>
+        <div class="notice" th:if="${notice}" th:text="${notice}"></div>
+        <div class="error" th:if="${error}" th:text="${error}"></div>
         <section class="card">
+            <h2>自定义可种植农作物</h2>
+            <p class="muted">种子类农资必须绑定这里的作物；如果要种新的蔬菜、水果或经济作物，先在这里建档。</p>
+            <form method="post" action="/crops" class="toolbar">
+                <input type="hidden" name="redirectTo" value="/stock">
+                <input name="name" placeholder="作物名称，如 甜玉米" required>
+                <input name="variety" placeholder="品种，如 水果玉米">
+                <input type="number" name="minGrowthDays" min="1" placeholder="生长周期(天)" required>
+                <input type="number" step="0.01" min="0" name="salePricePerKg" placeholder="参考售价(元/kg)" required>
+                <input name="imageUrl" placeholder="图片地址，可不填">
+                <button type="submit">添加作物</button>
+            </form>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>新增农资库存项</h2>
+            <p class="muted">种子要选择对应作物；化肥、农药、工具等可不关联作物。采购单价会用于库存价值和入库成本流水。</p>
+            <form method="post" action="/stock/materials" class="toolbar">
+                <input name="name" placeholder="农资名称，如 甜玉米种子" required>
+                <select name="category" required>
+                    <option th:each="c : ${categories}" th:value="${c.getLabel()}" th:text="${c.getLabel()}"></option>
+                </select>
+                <select name="cropId">
+                    <option value="">非种子或暂不关联</option>
+                    <option th:each="c : ${crops}" th:value="${c['ID'] ?: c['id']}"
+                            th:text="${(c['NAME'] ?: c['name']) + ' · ' + ((c['VARIETY'] ?: c['variety']) ?: '通用品种')}"></option>
+                </select>
+                <input name="unit" placeholder="单位，如 袋/kg/ml" required>
+                <input type="number" name="safeIntervalDays" min="0" placeholder="安全间隔期(天)" value="0" required>
+                <input type="number" step="0.01" min="0" name="unitPrice" placeholder="采购单价(元/单位)" required>
+                <input type="number" step="0.01" min="0" name="initialQuantity" placeholder="初始库存" value="0" required>
+                <input type="number" step="0.01" min="0" name="safetyStock" placeholder="安全库存" value="0" required>
+                <button type="submit">添加农资</button>
+            </form>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>补充库存</h2>
+            <form method="post" action="/stock/replenish" class="toolbar">
+                <select name="materialId" required>
+                    <option th:each="r : ${rows}" th:value="${r['ID'] ?: r['id']}"
+                            th:text="${(r['NAME'] ?: r['name']) + ' / 当前 ' + (r['QUANTITY'] ?: r['quantity']) + (r['UNIT'] ?: r['unit']) + ' / 上次价 ' + ((r['UNIT_PRICE'] ?: r['unit_price']) ?: 0) + ' 元'}"></option>
+                </select>
+                <input type="number" step="0.01" name="quantity" placeholder="入库数量" required>
+                <input type="number" step="0.01" min="0" name="unitPrice" placeholder="本次采购单价(元/单位)" required>
+                <button type="submit">确认入库</button>
+            </form>
+        </section>
+        <section class="card" style="margin-top:14px">
             <h2>库存台账</h2>
             <table>
-                <tr><th>农资</th><th>类别</th><th>库存</th><th>安全库存</th><th>单位</th><th>间隔期</th><th>版本</th></tr>
+                <tr><th>农资</th><th>类别</th><th>对应作物</th><th>库存</th><th>安全库存</th><th>单位</th><th>采购单价</th><th>库存金额</th><th>间隔期</th><th>版本</th></tr>
                 <tr th:each="r : ${rows}">
                     <td th:text="${r['NAME'] ?: r['name']}"></td>
                     <td th:text="${r['CATEGORY'] ?: r['category']}"></td>
+                    <td th:text="${(r['CROP_NAME'] ?: r['crop_name']) ?: '-'}"></td>
                     <td th:classappend="${(r['QUANTITY'] ?: r['quantity']) <= (r['SAFETY_STOCK'] ?: r['safety_stock'])} ? 'warn'" th:text="${r['QUANTITY'] ?: r['quantity']}"></td>
                     <td th:text="${r['SAFETY_STOCK'] ?: r['safety_stock']}"></td>
                     <td th:text="${r['UNIT'] ?: r['unit']}"></td>
+                    <td th:text="${(r['UNIT_PRICE'] ?: r['unit_price']) ?: 0} + ' 元'"></td>
+                    <td th:text="${(r['INVENTORY_VALUE'] ?: r['inventory_value']) ?: 0} + ' 元'"></td>
                     <td th:text="${r['SAFE_INTERVAL_DAYS'] ?: r['safe_interval_days']} + ' 天'"></td>
                     <td th:text="${r['VERSION'] ?: r['version']}"></td>
+                </tr>
+            </table>
+        </section>
+        <section class="card" style="margin-top:14px">
+            <h2>入库成本流水</h2>
+            <table>
+                <tr><th>时间</th><th>农资</th><th>数量</th><th>单位</th><th>采购单价</th><th>入库成本</th></tr>
+                <tr th:each="i : ${inOrders}">
+                    <td th:text="${i['CREATED_AT'] ?: i['created_at']}"></td>
+                    <td th:text="${i['MATERIAL_NAME'] ?: i['material_name']}"></td>
+                    <td th:text="${i['QUANTITY'] ?: i['quantity']}"></td>
+                    <td th:text="${i['UNIT'] ?: i['unit']}"></td>
+                    <td th:text="${i['UNIT_PRICE'] ?: i['unit_price']}"></td>
+                    <td th:text="${i['TOTAL_AMOUNT'] ?: i['total_amount']}"></td>
                 </tr>
             </table>
         </section>

@@ -8,21 +8,22 @@
 </head>
 <body>
 <main th:if="${trace}">
-    <section class="trace-hero" th:style="${'--trace-image:url(' + trace['IMAGE_URL'] + ')'}">
+    <section class="trace-hero" th:style="${(trace['IMAGE_URL'] ?: trace['image_url']) != null ? '--trace-image:url(' + (trace['IMAGE_URL'] ?: trace['image_url']) + ')' : ''}">
         <div>
             <div class="eyebrow">公开溯源码</div>
-            <h1 th:text="${trace['CROP_NAME'] + ' · ' + trace['VARIETY']}"></h1>
-            <p th:text="${'批次：' + trace['BATCH_NO'] + ' / 追溯码：' + code}"></p>
+            <h1 th:text="${(trace['CROP_NAME'] ?: trace['crop_name']) + ' · ' + (trace['VARIETY'] ?: trace['variety'])}"></h1>
+            <p th:text="${'批次：' + (trace['BATCH_NO'] ?: trace['batch_no']) + ' / 追溯码：' + code}"></p>
+            <p class="muted" th:if="${traceUrl}" th:text="${'扫码地址：' + traceUrl}"></p>
         </div>
         <img th:if="${qrDataUri}" th:src="${qrDataUri}" alt="溯源二维码"
              style="width:160px;height:160px;border-radius:8px;border:2px solid rgba(255,255,255,0.3)">
     </section>
     <section class="main">
         <div class="grid kpis">
-            <div class="card"><div class="kpi-label">产地地块</div><div class="kpi-value" style="font-size:24px" th:text="${trace['PLOT_NAME']}"></div></div>
-            <div class="card"><div class="kpi-label">土壤类型</div><div class="kpi-value" style="font-size:24px" th:text="${trace['SOIL_TYPE']}"></div></div>
-            <div class="card"><div class="kpi-label">采收日期</div><div class="kpi-value" style="font-size:24px" th:text="${trace['HARVEST_DATE']}"></div></div>
-            <div class="card"><div class="kpi-label">采收量</div><div class="kpi-value" style="font-size:24px" th:text="${trace['QUANTITY_KG'] + ' kg'}"></div></div>
+            <div class="card"><div class="kpi-label">产地地块</div><div class="kpi-value" style="font-size:24px" th:text="${trace['PLOT_NAME'] ?: trace['plot_name']}"></div></div>
+            <div class="card"><div class="kpi-label">土壤类型</div><div class="kpi-value" style="font-size:24px" th:text="${trace['SOIL_TYPE'] ?: trace['soil_type']}"></div></div>
+            <div class="card"><div class="kpi-label">采收日期</div><div class="kpi-value" style="font-size:24px" th:text="${trace['HARVEST_DATE'] ?: trace['harvest_date']}"></div></div>
+            <div class="card"><div class="kpi-label">采收量</div><div class="kpi-value" style="font-size:24px" th:text="${(trace['QUANTITY_KG'] ?: trace['quantity_kg']) + ' kg'}"></div></div>
         </div>
         <section class="card" style="margin-top:14px">
             <h2>脱敏农事时间线</h2>

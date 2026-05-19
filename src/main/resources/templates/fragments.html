@@ -12,26 +12,27 @@
     <div class="brand">智慧农场指挥中心</div>
     <div class="muted" th:if="${currentUser}" th:text="${currentUser.displayName + ' · ' + (label != null ? label.role(currentUser.roleCode) : currentUser.roleCode)}"></div>
     <nav class="nav">
-        <a href="/dashboard">驾驶舱</a>
-        <a href="/plots">地块布局</a>
-        <a href="/batches">种植批次</a>
-        <a href="/operations">农事作业</a>
-        <a href="/stock">农资库存</a>
-        <a href="/harvest">采收溯源</a>
-        <a href="/sales">销售记录</a>
-        <a href="/ai/chat">AI 助手</a>
-        <a th:if="${currentUser != null && currentUser.admin}" href="/providers">AI 端点管理</a>
-        <a href="/mobile">手机扫码</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/dashboard')}" href="/dashboard">驾驶舱</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/plots')}" href="/plots">地块布局</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/batches')}" href="/batches">种植批次</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/operations')}" href="/operations">农事作业</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/stock')}" href="/stock">农资库存</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/harvest')}" href="/harvest">采收溯源</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/market')}" href="/market">购买农作物</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/sales')}" href="/sales">销售记录</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/ai/chat')}" href="/ai/chat">AI 助手</a>
+        <a th:if="${access != null && access.canManageAiProviders(currentUser)}" href="/providers">AI 端点管理</a>
+        <a th:if="${access != null && access.canAccess(currentUser, '/mobile')}" href="/mobile">手机扫码</a>
         <a href="/logout">退出</a>
     </nav>
 </aside>
 <div class="topbar" th:fragment="topbar(title, subtitle)">
     <div>
-        <div class="eyebrow">SQL Server · 智慧农场种植管理系统</div>
+        <div class="eyebrow">智慧农场种植管理系统</div>
         <h1 th:text="${title}">标题</h1>
         <div class="muted" th:text="${subtitle}">说明</div>
     </div>
-    <a class="button secondary" href="/mobile">手机端</a>
+    <a th:if="${access != null && access.canAccess(currentUser, '/mobile')}" class="button secondary" href="/mobile">手机端</a>
 </div>
 </body>
 </html>

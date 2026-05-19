@@ -48,7 +48,8 @@ fpms:
         - "1[3-9]\\d{9}"
         - "[1-9]\\d{16}[0-9Xx]"
     bind:
-      qr-base-url: http://localhost:8080/m/bind
+      # Leave blank for automatic LAN URL generation, or set FPMS_MOBILE_BASE_URL to a reachable URL such as http://192.168.5.93:8080/m/bind.
+      qr-base-url: ${FPMS_MOBILE_BASE_URL:}
       token-ttl-seconds: 300
 
 logging:

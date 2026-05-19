@@ -1,7 +1,10 @@
 package com.farm.fpms.service;
 
-import com.farm.fpms.domain.MaterialCategory;
-import com.farm.fpms.domain.OperationType;
+import com.farm.fpms.entity.MaterialCategory;
+import com.farm.fpms.entity.OperationMaterialSnapshot;
+import com.farm.fpms.entity.OperationSnapshot;
+import com.farm.fpms.entity.OperationType;
+import com.farm.fpms.entity.SafetyCheckResult;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
@@ -51,14 +54,14 @@ public class SafetyIntervalChecker {
             if (builder == null) {
                 Date opDate = rs.getDate("operation_date");
                 builder = new OperationSnapshotBuilder(operationId,
-                        OperationType.valueOf(rs.getString("type")),
+                        OperationType.fromLabel(rs.getString("type")),
                         opDate == null ? LocalDate.now() : opDate.toLocalDate());
                 builders.put(operationId, builder);
             }
             Long materialId = rs.getLong("material_id");
             if (!rs.wasNull()) {
                 builder.materials.add(new OperationMaterialSnapshot(materialId,
-                        MaterialCategory.valueOf(rs.getString("category")),
+                        MaterialCategory.fromLabel(rs.getString("category")),
                         rs.getInt("safe_interval_days")));
             }
         }, batchId);

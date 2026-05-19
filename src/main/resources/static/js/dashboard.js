@@ -1,6 +1,8 @@
 var statusMap = {
-    GROWING: "生长中", READY_HARVEST: "待采收", PLANNED: "已规划",
-    SOWED: "已播种", HARVESTING: "采收中", COMPLETED: "已完成", ABANDONED: "已废弃"
+    GROWING: "生长期", READY_HARVEST: "待采收", PLANNED: "已计划",
+    SOWED: "已播种", HARVESTING: "采收中", COMPLETED: "已完结", ABANDONED: "已废弃",
+    "生长期": "生长期", "待采收": "待采收", "已计划": "已计划",
+    "已播种": "已播种", "采收中": "采收中", "已完结": "已完结", "已废弃": "已废弃"
 };
 
 var plotRects = [];
@@ -26,7 +28,7 @@ function drawPlots(hoverIdx) {
         var w = Number(node.dataset.w);
         var h = Number(node.dataset.h);
         var status = node.dataset.status;
-        var color = status === "READY_HARVEST" ? "#d6a044" : status === "GROWING" ? "#4f9a63" : "#6bb9d6";
+        var color = status === "待采收" || status === "READY_HARVEST" ? "#d6a044" : status === "生长期" || status === "GROWING" ? "#4f9a63" : "#6bb9d6";
         ctx.fillStyle = color;
         ctx.strokeStyle = "#0c130f";
         ctx.lineWidth = 2;
